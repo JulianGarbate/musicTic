@@ -3,7 +3,7 @@ import query from "../db.js";
 import bycrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = 'shulimeaburro'
+const JWT_SECRET = 'clave-secreta';
 
 const crearUsuario = async (req = request, res = response) => {
     const { userId, nombre, password } = req.body;
@@ -53,4 +53,4 @@ const escucho = async (req = request, res = response) => {
     }
 }
 
-export default { crearUsuario, login, escucho };
+export { crearUsuario, login, escucho };

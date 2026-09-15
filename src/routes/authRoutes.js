@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { crearUsuario, login, escucho } from '../controllers/authController';
+import { crearUsuario, login, escucho } from '../controllers/authController.js';
+
 const authRouter = Router();
 
-app.post('/crearusuario', crearUsuario);y
-app.post('/login', login);
-app.post('/escucho', escucho);
+authRouter.post('/crearusuario', crearUsuario);
+authRouter.post('/login', login);
+authRouter.post('/escucho', escucho);
 
 export default authRouter;

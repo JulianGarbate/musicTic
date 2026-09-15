@@ -18,7 +18,7 @@ export const dbControler = {
     pool: pool,
 }
 
-export const query = async (text, params = []) => {
+const query = async (text, params = []) => {
     const client = await dbControler.pool.connect();
     try{
         const res = await client.query(text, params);
@@ -27,3 +27,5 @@ export const query = async (text, params = []) => {
         client.release();
     }
 };
+
+export default query;
