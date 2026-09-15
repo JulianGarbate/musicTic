@@ -44,7 +44,7 @@ const escucho = async (req = request, res = response) => {
     try{
         const decoded = jwt.verify(token, JWT_SECRET);
         const userId = decoded.userId;
-        const result = await query('SELECT * FROM cancion WHERE userId = $1', [userId]);
+        const result = await query('UPDATE escucha SET reproducciones = reproducciones + 1 WHERE userId = $1 RETURNING *', [userId]);
         res.json({ canciones: result.rows });
     }
     catch(error) {

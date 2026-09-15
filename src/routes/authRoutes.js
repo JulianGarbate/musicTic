@@ -5,6 +5,6 @@ const authRouter = Router();
 
 authRouter.post('/crearusuario', crearUsuario);
 authRouter.post('/login', login);
-authRouter.post('/escucho', escucho);
+authRouter.update('/escucho', escucho);
 
 export default authRouter;
