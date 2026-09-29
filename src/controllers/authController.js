@@ -61,7 +61,7 @@ const crearCancion = async (req = request, res = response) => {
 }
 
 const escucho = async (req = request, res = response) => {
-    const { token, cancionId } = req.body ?? {};
+    const { token, cancionId } = req.body;
     if (!token || !cancionId) {
         return res.status(400).json({ message: 'Faltan token o cancionId' });
     }
