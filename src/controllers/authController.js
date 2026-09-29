@@ -7,9 +7,12 @@ const JWT_SECRET = 'clave-secreta';
 
 const crearUsuario = async (req = request, res = response) => {
     const { nombre, password } = req.body;
+    if (!nombre || !password) {
+        return res.status(400).json({ message: 'Faltan nombre o password' });
+    }
     try{
         const hashedPassword = await bycrypt.hash(password, 10);
-        await query('INSERT INTO usuarios (nombre, password) VALUES ($1, $2)', [nombre, hashedPassword]);
+        await query('INSERT INTO usuario (nombre, password) VALUES ($1, $2)', [nombre, hashedPassword]);
         res.status(201).json({ message: 'Usuario creado exitosamente'});
     }
     catch (error) {
@@ -20,8 +23,11 @@ const crearUsuario = async (req = request, res = response) => {
 
 const login = async (req = request, res = response) => {
     const { userId, password } = req.body;
+    if (!userId || !password) {
+        return res.status(400).json({ message: 'Faltan userId o password' });
+    }
     try{
-        const result = await query('SELECT * FROM usuarios WHERE userId = $1', [userId]);
+        const result = await query('SELECT * FROM usuario WHERE id = $1', [userId]);
         if (result.rows.length === 0) {
             return res.status(401).json({ message: 'Usuario no encontrado' });
         }
@@ -30,7 +36,7 @@ const login = async (req = request, res = response) => {
         if (!compararPasword) {
             return res.status(401).json({ message: 'Contraseña incorrecta' });
         }
-        const token = jwt.sign({ userId: user.userId }, JWT_SECRET, { expiresIn: '1h' });
+        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ token });
     }
     catch(error) {
@@ -44,7 +50,7 @@ const escucho = async (req = request, res = response) => {
     try{
         const decoded = jwt.verify(token, JWT_SECRET);
         const userId = decoded.userId;
-        const result = await query('UPDATE escucha SET reproducciones = reproducciones + 1 WHERE userId = $1 RETURNING *', [userId]);
+        const result = await query('UPDATE escucha SET reproducciones = reproducciones + 1 WHERE usuario_id = $1 RETURNING *', [userId]);
         res.json({ canciones: result.rows });
     }
     catch(error) {
