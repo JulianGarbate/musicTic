@@ -45,18 +45,44 @@ const login = async (req = request, res = response) => {
     }
 };
 
-const escucho = async (req = request, res = response) => {
-    const { token } = req.body;
-    try{
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const userId = decoded.userId;
-        const result = await query('UPDATE escucha SET reproducciones = reproducciones + 1 WHERE usuario_id = $1 RETURNING *', [userId]);
-        res.json({ canciones: result.rows });
+const crearCancion = async (req = request, res = response) => {
+    const { nombre } = req.body;
+    if (!nombre) {
+        return res.status(400).json({ message: 'Falta nombre' });
     }
-    catch(error) {
-        console.error('Error al obtener canciones:', error);
-        res.status(500).json({ message: 'Error al obtener canciones' });
+    try{
+        const result = await query('INSERT INTO cancion (nombre) VALUES ($1) RETURNING *', [nombre]);
+        res.status(201).json({ cancion: result.rows[0] });
+    }
+    catch (error) {
+        console.error('Error al crear canción:', error);
+        res.status(500).json({ message: 'Error al crear canción' });
     }
 }
 
-export { crearUsuario, login, escucho };
+const escucho = async (req = request, res = response) => {
+    const { token, cancionId } = req.body ?? {};
+    if (!token || !cancionId) {
+        return res.status(400).json({ message: 'Faltan token o cancionId' });
+    }
+    let userId;
+    try{
+        userId = jwt.verify(token, JWT_SECRET).userId;
+    }
+    catch {
+        return res.status(401).json({ message: 'Token inválido' });
+    }
+    try{
+        let result = await query('UPDATE escucha SET reproducciones = reproducciones + 1 WHERE usuario_id = $1 AND cancion_id = $2 RETURNING *', [userId, cancionId]);
+        if (result.rows.length === 0) {
+            result = await query('INSERT INTO escucha (usuario_id, cancion_id, reproducciones) VALUES ($1, $2, 1) RETURNING *', [userId, cancionId]);
+        }
+        res.json({ escucha: result.rows[0] });
+    }
+    catch(error) {
+        console.error('Error al registrar escucha:', error);
+        res.status(500).json({ message: 'Error al registrar escucha' });
+    }
+}
+
+export { crearUsuario, login, crearCancion, escucho };
