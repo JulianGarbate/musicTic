@@ -6,10 +6,10 @@ import jwt from "jsonwebtoken";
 const JWT_SECRET = 'clave-secreta';
 
 const crearUsuario = async (req = request, res = response) => {
-    const { userId, nombre, password } = req.body;
+    const { nombre, password } = req.body;
     try{
         const hashedPassword = await bycrypt.hash(password, 10);
-        await query('INSERT INTO usuarios (userId, nombre, password) VALUES ($1, $2, $3)', [userId, nombre, hashedPassword]);
+        await query('INSERT INTO usuarios (nombre, password) VALUES ($1, $2)', [nombre, hashedPassword]);
         res.status(201).json({ message: 'Usuario creado exitosamente'});
     }
     catch (error) {
