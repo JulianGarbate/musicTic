@@ -1,9 +1,5 @@
 import { request, response } from "express";
-import query from "../db.js";
-import bycrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-
-const JWT_SECRET = 'clave-secreta';
+import * as authService from "../services/authService.js";
 
 const crearUsuario = async (req = request, res = response) => {
     const { nombre, password } = req.body;
@@ -11,8 +7,7 @@ const crearUsuario = async (req = request, res = response) => {
         return res.status(400).json({ message: 'Faltan nombre o password' });
     }
     try{
-        const hashedPassword = await bycrypt.hash(password, 10);
-        await query('INSERT INTO usuario (nombre, password) VALUES ($1, $2)', [nombre, hashedPassword]);
+        await authService.crearUsuario(nombre, password);
         res.status(201).json({ message: 'Usuario creado exitosamente'});
     }
     catch (error) {
@@ -27,16 +22,10 @@ const login = async (req = request, res = response) => {
         return res.status(400).json({ message: 'Faltan userId o password' });
     }
     try{
-        const result = await query('SELECT * FROM usuario WHERE id = $1', [userId]);
-        if (result.rows.length === 0) {
-            return res.status(401).json({ message: 'Usuario no encontrado' });
+        const { token, error } = await authService.login(userId, password);
+        if (error) {
+            return res.status(401).json({ message: error });
         }
-        const user = result.rows[0];
-        const compararPasword = await bycrypt.compare(password, user.password);
-        if (!compararPasword) {
-            return res.status(401).json({ message: 'Contraseña incorrecta' });
-        }
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '1h' });
         res.json({ token });
     }
     catch(error) {
@@ -51,8 +40,8 @@ const crearCancion = async (req = request, res = response) => {
         return res.status(400).json({ message: 'Falta nombre' });
     }
     try{
-        const result = await query('INSERT INTO cancion (nombre) VALUES ($1) RETURNING *', [nombre]);
-        res.status(201).json({ cancion: result.rows[0] });
+        const cancion = await authService.crearCancion(nombre);
+        res.status(201).json({ cancion });
     }
     catch (error) {
         console.error('Error al crear canción:', error);
@@ -65,19 +54,13 @@ const escucho = async (req = request, res = response) => {
     if (!token || !cancionId) {
         return res.status(400).json({ message: 'Faltan token o cancionId' });
     }
-    let userId;
-    try{
-        userId = jwt.verify(token, JWT_SECRET).userId;
-    }
-    catch {
+    const userId = authService.verificarToken(token);
+    if (!userId) {
         return res.status(401).json({ message: 'Token inválido' });
     }
     try{
-        let result = await query('UPDATE escucha SET reproducciones = reproducciones + 1 WHERE usuario_id = $1 AND cancion_id = $2 RETURNING *', [userId, cancionId]);
-        if (result.rows.length === 0) {
-            result = await query('INSERT INTO escucha (usuario_id, cancion_id, reproducciones) VALUES ($1, $2, 1) RETURNING *', [userId, cancionId]);
-        }
-        res.json({ escucha: result.rows[0] });
+        const escucha = await authService.registrarEscucha(userId, cancionId);
+        res.json({ escucha });
     }
     catch(error) {
         console.error('Error al registrar escucha:', error);

@@ -1,17 +1,20 @@
 import pkg from 'pg'
+import dotenv from 'dotenv';
 const { Pool } = pkg
 
+dotenv.config();
+
 export const pool = new Pool({
-    host: 'ep-calm-water-aczyziwa-pooler.sa-east-1.aws.neon.tech',
-    user: 'neondb_owner',
-    password: 'npg_XW4xqibJIAD8',
-    PGSSLMODE: 'require',
-    database: 'neondb',
-    port: 5432,
+    host: process.env.HOST,
+    user: process.env.USER,
+    password: process.env.PASSWORD,
+    PGSSLMODE: process.env.PGSSLMODE,
+    database: process.env.DATABASE,
+    port: process.env.PORT,
     ssl: {
-        rejectUnauthorized: false,
+        rejectUnauthorized: process.env.SSL_REJECT_UNAUTHORIZED === 'true',
     },
-    channelBiding: 'require',
+    channelBiding: process.env.CHANNEL_BINDING,
 });
 
 export const dbControler = {
