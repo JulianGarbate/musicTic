@@ -4,18 +4,7 @@ const { Pool } = pkg
 
 dotenv.config();
 
-export const pool = new Pool({
-    host: process.env.HOST,
-    user: process.env.USER,
-    password: process.env.PASSWORD,
-    PGSSLMODE: process.env.PGSSLMODE,
-    database: process.env.DATABASE,
-    port: process.env.PORT,
-    ssl: {
-        rejectUnauthorized: process.env.SSL_REJECT_UNAUTHORIZED === 'true',
-    },
-    channelBiding: process.env.CHANNEL_BINDING,
-});
+export const pool = new Pool();
 
 export const dbControler = {
     pool: pool,
